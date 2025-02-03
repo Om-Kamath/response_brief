@@ -1,7 +1,6 @@
 import streamlit as st
 from latitude import AI
 from bs4 import BeautifulSoup
-from streamlit_card import card
 from datetime import datetime, timedelta
 from io import StringIO
 
