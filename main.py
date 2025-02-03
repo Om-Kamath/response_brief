@@ -1,27 +1,25 @@
 import streamlit as st
 from latitude import AI
 from bs4 import BeautifulSoup
+from streamlit_card import card
+from datetime import datetime, timedelta
+from io import StringIO
 
-st.title("Response Brief")
+st.title("Story Brief")
 
-customer = st.text_input("Customer Name", placeholder="Doofenshmirtz Evil Inc.")
-transcript = st.file_uploader("Upload Interview Transcript", type=["txt", "docx"], accept_multiple_files=True)
-products = st.text_input("Additional Products", placeholder="Product A: Description ")
+AI = AI()
+transcript = st.file_uploader("Upload Interview Transcript", type=["txt", "docx", "pdf"])
+speakers = st.text_input("Speakers", placeholder="Speaker A, Speaker B")
+material1 = st.file_uploader("Upload Material 1", type=["docx", "txt", "pdf"])
+material2 = st.file_uploader("Upload Material 2", type=["docx", "txt", "pdf"])
+material3 = st.file_uploader("Upload Material 3", type=["docx", "txt", "pdf"])
 
-if st.button("Generate Response Brief") and transcript:
-    merged_transcript = ""
-    for i, file in enumerate(transcript):
-        merged_transcript += f"<transcript>{file.getvalue().decode("utf-8")}</transcript>\n"
+if st.button("Generate Story Brief") and transcript:
+    transcript_text = transcript.getvalue().decode("utf-8")
+    material1_text = StringIO(material1.getvalue().decode("utf-8")).read() if material1 else ""
+    material2_text = StringIO(material2.getvalue().decode("utf-8")).read() if material2 else ""
+    material3_text = StringIO(material3.getvalue().decode("utf-8")).read() if material3 else ""
+    brief = AI.get_story_brief(transcript_text, speakers, material1_text, material2_text, material3_text)
 
-    ai = AI()
-    audience_understand = BeautifulSoup(ai.get_audience_understand(merged_transcript, customer), 'html.parser').find("response").get_text()
-    audience_believe = BeautifulSoup(ai.get_audience_believe(merged_transcript, products, customer), 'html.parser').find("response").get_text()
-    products = BeautifulSoup(ai.get_products(merged_transcript, products, customer), 'html.parser').find("response").get_text()
-    
-    with st.spinner("Generating Response Brief..."):
-        with st.expander("What Is The One Thing We Want The Audience To Understand?"):
-            st.write(audience_understand)
-        with st.expander("Why Should They Believe This?"):
-            st.write(audience_believe)
-        with st.expander("What Products/Services Should Be Featured in the Story?"):
-            st.write(products)
+    brief = BeautifulSoup(brief, 'html.parser').find("response").get_text()
+    st.markdown(brief)
